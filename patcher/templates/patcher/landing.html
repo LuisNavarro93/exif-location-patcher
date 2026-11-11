@@ -1,0 +1,52 @@
+{% extends "patcher/base.html" %}
+{% load static %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'patcher/css/landing.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="picker">
+  <h1>Select a folder with pictures or videos</h1>
+  <p class="picker-hint">Browse to the folder, then open it to see its contents and where each one was taken.</p>
+
+  {% if str_error %}<p class="picker-error">{{ str_error }}</p>{% endif %}
+
+  <form class="picker-path" method="get" action="{% url 'patcher:landing' %}">
+    <input type="text" name="path" value="{{ str_folder }}" aria-label="Folder path" spellcheck="false">
+    <button type="submit" class="btn">Go</button>
+  </form>
+
+  <div class="picker-body">
+    <nav class="picker-places" aria-label="Places">
+      <h2>Places</h2>
+      <ul>
+        {% for obj_place in lst_places %}
+          <li><a href="?path={{ obj_place.str_path|urlencode }}" title="{{ obj_place.str_path }}">{{ obj_place.str_name }}</a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <div class="picker-folders">
+      <ul class="folder-list">
+        {% if str_parent %}
+          <li><a class="folder folder-up" href="?path={{ str_parent|urlencode }}">..</a></li>
+        {% endif %}
+        {% for obj_entry in lst_subfolders %}
+          <li><a class="folder" href="?path={{ obj_entry.str_path|urlencode }}">{{ obj_entry.str_name }}</a></li>
+        {% empty %}
+          <li class="folder-empty">No subfolders here.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="picker-footer">
+    <span class="picker-count">
+      {{ int_media_count }} picture{{ int_media_count|pluralize }}/video{{ int_media_count|pluralize }} in this folder
+    </span>
+    <a class="btn btn-primary{% if not int_media_count %} btn-disabled{% endif %}"
+       href="{% url 'patcher:workspace' %}?folder={{ str_folder|urlencode }}">Open this folder</a>
+  </div>
+</section>
+{% endblock %}

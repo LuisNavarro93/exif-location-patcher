@@ -6,3 +6,6 @@ db.sqlite3
 .thumbnail_cache/
 .env
 .idea/
+*.egg-info/
+build/
+dist/

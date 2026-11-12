@@ -19,20 +19,53 @@ clusters. Click a pin to see the picture, then **Edit location** to change it.
 > **Files are modified in place.** The write is atomic and keeps the file's
 > modification time, but make a backup of anything irreplaceable first.
 
-## Setup
+## Quick start
+
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/)
+   and ffmpeg:
+
+   | System  | uv                                                              | ffmpeg                    |
+   |---------|-----------------------------------------------------------------|---------------------------|
+   | Linux   | `curl -LsSf https://astral.sh/uv/install.sh \| sh`              | `sudo apt install ffmpeg` |
+   | macOS   | `curl -LsSf https://astral.sh/uv/install.sh \| sh`              | `brew install ffmpeg`     |
+   | Windows | `powershell -c "irm https://astral.sh/uv/install.ps1 \| iex"`   | `winget install ffmpeg`   |
+
+2. Clone and run:
+
+   ```bash
+   git clone https://github.com/LuisNavarro93/exif-location-patcher.git
+   cd exif-location-patcher
+   uv run launcher.py          # or: uv run launcher.py 8080
+   ```
+
+   The first run downloads Python 3.12 (if needed) and the exact package
+   versions in `uv.lock`. The app then opens at <http://127.0.0.1:8000/>.
+   Press Ctrl+C to stop it.
+
+**Without cloning**, run it straight from GitHub:
 
 ```bash
-python3.11 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-python3 launcher.py          # or: python3 launcher.py 8080
+uvx --from git+https://github.com/LuisNavarro93/exif-location-patcher exif-location-patcher
 ```
 
-`launcher.py` runs `manage.py runserver` with the project's `.venv` and
-opens <http://127.0.0.1:8000/> in your browser once the server is up. The map tiles come from OpenStreetMap, so an
-internet connection is needed for the map.
+**Without uv**, use plain pip (Python 3.10+):
 
-`ffmpeg`/`ffprobe` must be on the `PATH` for video thumbnails and video
-locations.
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt     # Windows: .venv\Scripts\pip
+.venv/bin/python launcher.py
+```
+
+The map tiles come from OpenStreetMap, so the map needs an internet
+connection. Without ffmpeg the app still works, but videos show a
+placeholder thumbnail and can't be patched.
+
+### Changing dependencies
+
+```bash
+uv add <package>      # updates pyproject.toml and uv.lock
+uv export --no-hashes --no-dev --no-emit-project --format requirements-txt -o requirements.txt
+```
 
 ## Supported formats
 
@@ -48,11 +81,11 @@ locations.
 | Variable                      | Default             |
 |-------------------------------|---------------------|
 | `PATCHER_START_DIR`           | your home folder    |
-| `PATCHER_THUMBNAIL_CACHE_DIR` | `.thumbnail_cache/` |
+| `PATCHER_THUMBNAIL_CACHE_DIR` | `~/.cache/exif-location-patcher/thumbnails` |
 | `PATCHER_THUMBNAIL_SIZE_PX`   | `320`               |
 
 ## Tests
 
 ```bash
-.venv/bin/python manage.py test patcher
+uv run python manage.py test patcher
 ```

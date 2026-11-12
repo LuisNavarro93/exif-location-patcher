@@ -32,7 +32,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "config.urls"
+ROOT_URLCONF = "epl_config.urls"
 
 TEMPLATES = [
     {
@@ -47,7 +47,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "config.wsgi.application"
+WSGI_APPLICATION = "epl_config.wsgi.application"
 
 # The app keeps no records of its own, so no database is configured.
 DATABASES = {}
@@ -65,9 +65,13 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Where generated thumbnails are cached (keyed by file path + mtime).
+# Where generated thumbnails are cached (keyed by file path + mtime). Kept
+# in the user's cache folder so it also works when installed as a package.
 OBJ_PATCHER_THUMBNAIL_CACHE_DIR = Path(
-    os.environ.get("PATCHER_THUMBNAIL_CACHE_DIR", BASE_DIR / ".thumbnail_cache")
+    os.environ.get(
+        "PATCHER_THUMBNAIL_CACHE_DIR",
+        Path.home() / ".cache" / "exif-location-patcher" / "thumbnails",
+    )
 )
 
 # Thumbnail longest side, in pixels.

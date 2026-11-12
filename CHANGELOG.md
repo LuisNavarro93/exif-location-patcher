@@ -4,6 +4,27 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-11-12
+
+### Changed
+
+- The environment is managed with [uv](https://docs.astral.sh/uv/):
+  `pyproject.toml` lists the dependencies, `uv.lock` pins exact versions
+  and `.python-version` pins Python 3.12. Start the app with
+  `uv run launcher.py`. `requirements.txt` is now generated from the lock
+  file for people using plain pip.
+- `launcher.py` runs Django in the current Python environment instead of
+  calling `.venv/bin/python`, so it also works on Windows.
+- The Django project package `config` is renamed to `epl_config`, to avoid
+  clashing with other installed packages.
+- Thumbnails are cached in `~/.cache/exif-location-patcher/thumbnails`
+  instead of the project folder.
+
+### Added
+
+- `exif-location-patcher` command, so the app can be run straight from
+  GitHub with `uvx --from git+https://github.com/LuisNavarro93/exif-location-patcher exif-location-patcher`.
+
 ## [0.2.0] - 2026-11-11
 
 ### Added

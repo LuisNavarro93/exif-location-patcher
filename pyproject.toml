@@ -1,0 +1,28 @@
+[project]
+name = "exif-location-patcher"
+dynamic = ["version"]
+description = "Local Django tool to view and fix the GPS location of photos and videos."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "Django>=5.2,<6.0",
+    "Pillow>=10.0",
+    "piexif>=1.1.3",
+]
+
+[project.scripts]
+exif-location-patcher = "launcher:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["epl_config", "patcher"]
+py-modules = ["launcher"]
+
+[tool.setuptools.dynamic]
+version = { attr = "patcher.__version__" }
+
+[tool.setuptools.package-data]
+patcher = ["templates/**/*", "static/**/*"]

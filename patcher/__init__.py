@@ -5,4 +5,4 @@ write a new GPS location into the files. See CHANGELOG.md at the project
 root for release history.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"

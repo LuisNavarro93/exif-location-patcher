@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- README: added how locations are written (what is kept, read-only files,
+  empty GPS blocks), a description for every setting, a security note,
+  troubleshooting, the project layout, and development/release steps.
+  Windows commands for the plain-pip setup.
+- `.gitignore`: removed the unused `.thumbnail_cache/` entry (thumbnails
+  are cached under `~/.cache` since 0.3.0).
+
 ## [0.3.0] - 2026-11-12
 
 ### Changed

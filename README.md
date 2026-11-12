@@ -3,6 +3,8 @@
 A small local Django tool to see where your pictures and videos were taken
 and fix or add their GPS location.
 
+![Workspace: folder thumbnails on the left, map with every photo's location on the right](docs/images/exif_ui.jpeg)
+
 1. **Pick a folder** on the landing page (quick links to Home, Pictures,
    Videos and mounted drives, or type a path).
 2. The **workspace** shows the folder's thumbnails on the left and a map on

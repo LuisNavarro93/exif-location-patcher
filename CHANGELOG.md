@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `.gitignore`: removed the unused `.thumbnail_cache/` entry (thumbnails
   are cached under `~/.cache` since 0.3.0).
 
+### Added
+
+- Screenshot of the workspace at the top of the README
+  (`docs/images/exif_ui.jpeg`).
+
 ## [0.3.0] - 2026-11-12
 
 ### Changed

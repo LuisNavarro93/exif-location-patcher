@@ -5,6 +5,11 @@
  * the map picks a new spot; the button under the map then writes it into
  * the selected files. When the pin hasn't been moved, the same button
  * re-reads the location from the files instead.
+ *
+ * "Show all" (map corner, or the "N with location" count) switches to an
+ * overview: one pin per located file, grouped into numbered clusters when
+ * close together. Nothing can be edited there; clicking a thumbnail, the
+ * popup's "Edit location" button, "Back to selection" or Esc leaves it.
  */
 (function () {
   "use strict";
@@ -29,6 +34,8 @@
   let int_anchor = -1;            // last plain-clicked index, for shift-click ranges
   let bool_pin_moved = false;
   let bool_busy = false;
+  let bool_overview = false;
+  let obj_cluster_group = null;
 
   // ---- Map ---------------------------------------------------------------
 
@@ -46,6 +53,7 @@
   obj_marker.on("dragend", function () { markPinMoved(); });
 
   obj_map.on("click", function (obj_event) {
+    if (bool_overview) return;
     if (obj_selected.size === 0) {
       setStatus("Select a picture or video first.", "");
       return;
@@ -70,6 +78,140 @@
     bool_pin_moved = true;
     setStatus("New spot chosen. Press “Set new location” to save it into the file(s).", "");
     updateButton();
+  }
+
+  // ---- All-locations overview -------------------------------------------
+
+  const OverviewControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function () {
+      const obj_button_el = L.DomUtil.create("button", "map-control-btn leaflet-bar");
+      obj_button_el.type = "button";
+      obj_button_el.textContent = "📍 Show all";
+      obj_button_el.title = "Show the location of every picture and video";
+      L.DomEvent.disableClickPropagation(obj_button_el);
+      L.DomEvent.on(obj_button_el, "click", toggleOverview);
+      return obj_button_el;
+    },
+  });
+  const obj_overview_control = new OverviewControl().addTo(obj_map);
+
+  function toggleOverview() {
+    if (bool_overview) {
+      exitOverview();
+      applySelection();
+    } else {
+      enterOverview();
+    }
+  }
+
+  function enterOverview() {
+    const arr_located = [];
+    arr_items.forEach(function (dict_item, int_index) {
+      if (dict_item.location) arr_located.push(int_index);
+    });
+    if (arr_located.length === 0) {
+      setStatus("None of the files in this folder has a location yet.", "error");
+      return;
+    }
+
+    bool_overview = true;
+    if (obj_map.hasLayer(obj_marker)) obj_map.removeLayer(obj_marker);
+
+    obj_cluster_group = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 50 });
+    arr_located.forEach(function (int_index) {
+      const dict_location = arr_items[int_index].location;
+      const obj_pin = L.marker([dict_location.lat, dict_location.lon], { title: arr_items[int_index].name });
+      obj_pin.bindPopup(function () { return buildPopup(int_index); }, {
+        minWidth: 180,
+        // Keep the popup clear of the "Back to selection" button in the corner.
+        autoPanPaddingTopLeft: L.point(20, 70),
+        autoPanPaddingBottomRight: L.point(20, 20),
+      });
+      obj_pin.on("click", function () { highlightThumb(int_index); });
+      obj_cluster_group.addLayer(obj_pin);
+    });
+    obj_map.addLayer(obj_cluster_group);
+    obj_map.fitBounds(obj_cluster_group.getBounds(), { padding: [40, 40], maxZoom: int_located_zoom });
+
+    const obj_control_el = obj_overview_control.getContainer();
+    obj_control_el.textContent = "Back to selection";
+    obj_control_el.classList.add("is-active");
+    obj_selection_label.textContent = "All locations · " + arr_located.length + " pin" +
+      (arr_located.length === 1 ? "" : "s");
+    obj_coords_label.textContent = "";
+    setStatus("Overview — click a pin to see the picture. Click a thumbnail to go back to editing.", "");
+    updateButton();
+  }
+
+  function exitOverview() {
+    if (!bool_overview) return;
+    bool_overview = false;
+    if (obj_cluster_group) {
+      obj_map.removeLayer(obj_cluster_group);
+      obj_cluster_group = null;
+    }
+    const obj_control_el = obj_overview_control.getContainer();
+    obj_control_el.textContent = "📍 Show all";
+    obj_control_el.classList.remove("is-active");
+    clearHighlight();
+  }
+
+  function buildPopup(int_index) {
+    const dict_item = arr_items[int_index];
+    const obj_card = document.createElement("div");
+    obj_card.className = "popup-card";
+
+    const obj_img = document.createElement("img");
+    obj_img.className = "popup-thumb";
+    obj_img.alt = dict_item.name;
+    obj_img.src = thumbnailUrl(dict_item.name);
+
+    const obj_name = document.createElement("div");
+    obj_name.className = "popup-name";
+    obj_name.textContent = dict_item.name;
+    obj_name.title = dict_item.name;
+
+    const obj_edit = document.createElement("button");
+    obj_edit.type = "button";
+    obj_edit.className = "btn btn-primary btn-small";
+    obj_edit.textContent = "Edit location";
+    obj_edit.addEventListener("click", function () {
+      exitOverview();
+      selectOnly(int_index);
+      scrollToThumb(int_index);
+    });
+
+    obj_card.append(obj_img, obj_name, obj_edit);
+    return obj_card;
+  }
+
+  function highlightThumb(int_index) {
+    clearHighlight();
+    obj_grid.children[int_index].classList.add("is-highlighted");
+    scrollToThumb(int_index);
+  }
+
+  function clearHighlight() {
+    obj_grid.querySelectorAll(".thumb.is-highlighted").forEach(function (obj_card) {
+      obj_card.classList.remove("is-highlighted");
+    });
+  }
+
+  function scrollToThumb(int_index) {
+    obj_grid.children[int_index].scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  document.addEventListener("keydown", function (obj_event) {
+    if (obj_event.key === "Escape" && bool_overview) {
+      exitOverview();
+      applySelection();
+    }
+  });
+
+  function thumbnailUrl(str_name) {
+    return str_thumbnail_url + "?folder=" + encodeURIComponent(str_folder) +
+      "&name=" + encodeURIComponent(str_name);
   }
 
   // ---- Thumbnails --------------------------------------------------------
@@ -111,8 +253,7 @@
       obj_img.className = "thumb-img";
       obj_img.loading = "lazy";
       obj_img.alt = dict_item.name;
-      obj_img.src = str_thumbnail_url + "?folder=" + encodeURIComponent(str_folder) +
-        "&name=" + encodeURIComponent(dict_item.name);
+      obj_img.src = thumbnailUrl(dict_item.name);
 
       const obj_name = document.createElement("div");
       obj_name.className = "thumb-name";
@@ -153,12 +294,24 @@
 
   function updateSummary() {
     const int_located = arr_items.filter(function (dict_item) { return dict_item.location; }).length;
-    obj_summary.textContent = arr_items.length + " item" + (arr_items.length === 1 ? "" : "s") +
-      " · " + int_located + " with location";
+    const obj_count_button = document.createElement("button");
+    obj_count_button.type = "button";
+    obj_count_button.className = "link-button";
+    obj_count_button.textContent = int_located + " with location";
+    obj_count_button.title = "Show all of them on the map";
+    obj_count_button.disabled = int_located === 0;
+    obj_count_button.addEventListener("click", function () {
+      if (!bool_overview) enterOverview();
+    });
+    obj_summary.replaceChildren(
+      document.createTextNode(arr_items.length + " item" + (arr_items.length === 1 ? "" : "s") + " · "),
+      obj_count_button
+    );
   }
 
   function onThumbClick(obj_event) {
     const int_index = Number(obj_event.currentTarget.dataset.index);
+    exitOverview();
     if (obj_event.shiftKey && int_anchor >= 0) {
       const int_from = Math.min(int_anchor, int_index);
       const int_to = Math.max(int_anchor, int_index);
@@ -235,6 +388,11 @@
   }
 
   function updateButton() {
+    if (bool_overview) {
+      obj_button.textContent = "Refresh location";
+      obj_button.disabled = true;
+      return;
+    }
     const bool_any_writable = selectedIndexes().some(function (int_i) { return arr_items[int_i].writable; });
     if (bool_pin_moved) {
       obj_button.textContent = "Set new location";

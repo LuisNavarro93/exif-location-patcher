@@ -12,6 +12,10 @@ and fix or add their GPS location.
 
 Ctrl/Shift-click thumbnails to set one location on several files at once.
 
+Press **📍 Show all** in the map's corner (or click the "N with location"
+count) to see a pin for every located file; close pins group into numbered
+clusters. Click a pin to see the picture, then **Edit location** to change it.
+
 > **Files are modified in place.** The write is atomic and keeps the file's
 > modification time, but make a backup of anything irreplaceable first.
 

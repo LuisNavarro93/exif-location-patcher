@@ -4,6 +4,20 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] - 2026-11-11
+
+### Added
+
+- "Show all" button in the map's top-right corner (also reachable by
+  clicking the "N with location" count above the thumbnails): shows one pin
+  per located picture/video, zoomed to fit them all. Nearby pins group into
+  numbered clusters (Leaflet.markercluster) that expand on click.
+- Clicking a pin opens a popup with its thumbnail and name, and highlights
+  and scrolls to that thumbnail. The popup's "Edit location" button goes
+  back to editing that file.
+- The overview is view-only. Leave it with "Back to selection", Esc, or by
+  clicking any thumbnail.
+
 ## [0.1.4] - 2026-11-11
 
 ### Fixed
